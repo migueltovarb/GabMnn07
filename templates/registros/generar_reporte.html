@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Generar Reporte - Sistema de Ingreso{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 20px;
+    }
+    
+    .page-title {
+        color: #333;
+        font-size: 1.8em;
+        margin-bottom: 30px;
+    }
+    
+    .page-title i {
+        color: #6f42c1;
+        margin-right: 10px;
+    }
+    
+    .filter-section {
+        background: white;
+        padding: 20px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .filter-title {
+        font-size: 1.2em;
+        color: #333;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    
+    .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    
+    .form-group {
+        margin-bottom: 0;
+    }
+    
+    label {
+        display: block;
+        margin-bottom: 5px;
+        color: #333;
+        font-weight: 600;
+        font-size: 0.95em;
+    }
+    
+    input[type="date"],
+    select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.95em;
+        box-sizing: border-box;
+    }
+    
+    input[type="date"]:focus,
+    select:focus {
+        outline: none;
+        border-color: #6f42c1;
+        box-shadow: 0 0 5px rgba(111, 66, 193, 0.3);
+    }
+    
+    .filter-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 15px;
+        flex-wrap: wrap;
+    }
+    
+    button {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.95em;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 600;
+    }
+    
+    .btn-generate {
+        background-color: #6f42c1;
+        color: white;
+    }
+    
+    .btn-generate:hover {
+        background-color: #5a32a3;
+        transform: translateY(-2px);
+    }
+    
+    .btn-export {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .btn-export:hover {
+        background-color: #218838;
+        transform: translateY(-2px);
+    }
+    
+    .btn-reset {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    .btn-reset:hover {
+        background-color: #5a6268;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    table thead {
+        background-color: #f8f9fa;
+    }
+    
+    table th {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 2px solid #dee2e6;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    table td {
+        padding: 12px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .info-box {
+        background-color: #e2d8f4;
+        border-left: 4px solid #6f42c1;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+    
+    .info-box strong {
+        color: #4a2c7a;
+    }
+    
+    .no-data {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+    }
+    
+    .no-data i {
+        font-size: 3em;
+        margin-bottom: 10px;
+        color: #ddd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="page-title">
+        <i class="fas fa-file-chart-line"></i>
+        Generar Reporte
+    </h1>
+    
+    <div class="info-box">
+        <strong><i class="fas fa-info-circle"></i> Total de registros:</strong> {{ registros.count }}
+    </div>
+    
+    <!-- Filtros -->
+    <div class="filter-section">
+        <div class="filter-title">
+            <i class="fas fa-filter"></i> Filtros y Opciones
+        </div>
+        <form method="POST" novalidate>
+            {% csrf_token %}
+            
+            <div class="filter-row">
+                <div class="form-group">
+                    <label for="{{ form.fecha_inicio.id_for_label }}">Fecha Inicio</label>
+                    {{ form.fecha_inicio }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.fecha_fin.id_for_label }}">Fecha Fin</label>
+                    {{ form.fecha_fin }}
+                </div>
+            </div>
+            
+            <div class="filter-buttons">
+                <button type="submit" class="btn-generate" name="generar" value="1">
+                    <i class="fas fa-sync"></i> Generar Reporte
+                </button>
+                <button type="submit" class="btn-export" name="exportar_csv" value="1">
+                    <i class="fas fa-download"></i> Exportar CSV
+                </button>
+                <a href="{% url 'generar_reporte' %}" class="btn-reset" style="text-decoration: none;">
+                    <i class="fas fa-redo"></i> Limpiar Filtros
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    {% if messages %}
+    <div>
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Tabla de Registros -->
+    <div class="table-container">
+        {% if registros %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Visitante</th>
+                    <th>Documento</th>
+                    <th>Motivo Visita</th>
+                    <th>Persona a Visitar</th>
+                    <th>Fecha Entrada</th>
+                    <th>Fecha Salida</th>
+                    <th>Registrado por</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for registro in registros %}
+                <tr>
+                    <td><strong>{{ registro.visitante.nombre }}</strong></td>
+                    <td>{{ registro.visitante.documento }}</td>
+                    <td>{{ registro.visitante.motivo_visita }}</td>
+                    <td>{{ registro.visitante.persona_a_visitar|default:"N/A" }}</td>
+                    <td>{{ registro.fecha_entrada|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if registro.fecha_salida %}
+                            {{ registro.fecha_salida|date:"d/m/Y H:i" }}
+                        {% else %}
+                            <em style="color: #999;">Aún en edificio</em>
+                        {% endif %}
+                    </td>
+                    <td>{{ registro.registrado_por.username }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-data">
+            <i class="fas fa-inbox"></i>
+            <p>No hay registros que mostrar. Aplica filtros para generar un reporte.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

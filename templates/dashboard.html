@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Sistema de Ingreso a Edificios{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        padding: 20px;
+        background-color: #f5f5f5;
+        min-height: 100vh;
+    }
+    
+    .dashboard-header {
+        margin-bottom: 30px;
+    }
+    
+    .dashboard-header h1 {
+        color: #333;
+        font-size: 2em;
+        margin-bottom: 10px;
+    }
+    
+    .dashboard-header p {
+        color: #666;
+        font-size: 1.1em;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-card i {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        color: #007bff;
+    }
+    
+    .stat-card.visitantes i {
+        color: #28a745;
+    }
+    
+    .stat-card.ingresos i {
+        color: #17a2b8;
+    }
+    
+    .stat-card.egresos i {
+        color: #ffc107;
+    }
+    
+    .stat-card.usuarios i {
+        color: #6f42c1;
+    }
+    
+    .stat-number {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 0.95em;
+    }
+    
+    .recent-visits {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .recent-visits h2 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.5em;
+    }
+    
+    .visits-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .visits-table th {
+        background-color: #f8f9fa;
+        padding: 12px;
+        text-align: left;
+        border-bottom: 2px solid #dee2e6;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .visits-table td {
+        padding: 12px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .visits-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.85em;
+        font-weight: 500;
+    }
+    
+    .badge-entrada {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .badge-salida {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .no-visits {
+        text-align: center;
+        color: #999;
+        padding: 40px 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>¡Bienvenido, {{ user.get_full_name|default:user.username }}!</h1>
+        <p>Sistema de Gestión de Ingreso a Edificios</p>
+    </div>
+    
+    <!-- Estadísticas -->
+    <div class="stats-grid">
+        <div class="stat-card visitantes">
+            <i class="fas fa-users"></i>
+            <div class="stat-number">{{ total_visitantes }}</div>
+            <div class="stat-label">Visitantes Registrados</div>
+        </div>
+        
+        <div class="stat-card ingresos">
+            <i class="fas fa-arrow-right"></i>
+            <div class="stat-number">{{ ingresos_hoy }}</div>
+            <div class="stat-label">Ingresos Hoy</div>
+        </div>
+        
+        <div class="stat-card egresos">
+            <i class="fas fa-arrow-left"></i>
+            <div class="stat-number">{{ egresos_hoy }}</div>
+            <div class="stat-label">Egresos Hoy</div>
+        </div>
+        
+        <div class="stat-card usuarios">
+            <i class="fas fa-user-tie"></i>
+            <div class="stat-number">{{ usuarios_activos }}</div>
+            <div class="stat-label">Usuarios Activos</div>
+        </div>
+    </div>
+    
+    <!-- Últimas Visitas -->
+    <div class="recent-visits">
+        <h2>Últimas Visitas Registradas</h2>
+        
+        {% if ultimas_visitas %}
+        <table class="visits-table">
+            <thead>
+                <tr>
+                    <th>Visitante</th>
+                    <th>Documento</th>
+                    <th>Empresa</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visita in ultimas_visitas %}
+                <tr>
+                    <td>{{ visita.visitante.nombre }} {{ visita.visitante.apellido }}</td>
+                    <td>{{ visita.visitante.documento }}</td>
+                    <td>{{ visita.visitante.empresa|default:"N/A" }}</td>
+                    <td>{{ visita.fecha_entrada|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if visita.fecha_salida %}
+                            {{ visita.fecha_salida|date:"d/m/Y H:i" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if visita.fecha_salida %}
+                            <span class="badge badge-salida">Salida</span>
+                        {% else %}
+                            <span class="badge badge-entrada">En edificio</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-visits">
+            <i class="fas fa-inbox" style="font-size: 3em; color: #ddd; margin-bottom: 10px;"></i>
+            <p>No hay visitas registradas aún</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

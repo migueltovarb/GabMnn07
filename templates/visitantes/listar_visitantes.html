@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Listar Visitantes - Sistema de Ingreso{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 20px;
+    }
+    
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .page-title {
+        color: #333;
+        font-size: 1.8em;
+        margin: 0;
+    }
+    
+    .page-title i {
+        color: #28a745;
+        margin-right: 10px;
+    }
+    
+    .search-box {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .search-box input {
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1em;
+        min-width: 250px;
+    }
+    
+    .search-box button {
+        padding: 10px 20px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    
+    .search-box button:hover {
+        background-color: #218838;
+    }
+    
+    .btn-crear {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #28a745;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: all 0.3s;
+        font-weight: 600;
+    }
+    
+    .btn-crear:hover {
+        background-color: #218838;
+        transform: translateY(-2px);
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    table thead {
+        background-color: #f8f9fa;
+    }
+    
+    table th {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 2px solid #dee2e6;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    table td {
+        padding: 15px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .btn-sm {
+        display: inline-block;
+        padding: 6px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 0.85em;
+        transition: all 0.2s;
+    }
+    
+    .btn-edit {
+        background-color: #ffc107;
+        color: #333;
+    }
+    
+    .btn-edit:hover {
+        background-color: #e0a800;
+    }
+    
+    .info-box {
+        background-color: #d4edda;
+        border-left: 4px solid #28a745;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+    
+    .no-data {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+    }
+    
+    .no-data i {
+        font-size: 3em;
+        margin-bottom: 10px;
+        color: #ddd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-users"></i>
+            Gestión de Visitantes
+        </h1>
+        <a href="{% url 'registrar_visitante' %}" class="btn-crear">
+            <i class="fas fa-user-plus"></i> Registrar Visitante
+        </a>
+    </div>
+    
+    <div class="info-box">
+        <strong><i class="fas fa-info-circle"></i> Total de visitantes:</strong> {{ visitantes.count }}
+    </div>
+    
+    {% if messages %}
+    <div>
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <form method="GET" style="margin-bottom: 20px;">
+        <div class="search-box">
+            <input type="text" name="buscar" placeholder="Buscar por nombre o documento..." value="{{ request.GET.buscar }}">
+            <button type="submit"><i class="fas fa-search"></i> Buscar</button>
+        </div>
+    </form>
+    
+    <div class="table-container">
+        {% if visitantes %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Tipo Documento</th>
+                    <th>Documento</th>
+                    <th>Teléfono</th>
+                    <th>Motivo Visita</th>
+                    <th>Persona a Visitar</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visitante in visitantes %}
+                <tr>
+                    <td><strong>{{ visitante.nombre }}</strong></td>
+                    <td>{{ visitante.get_tipo_documento_display }}</td>
+                    <td>{{ visitante.documento }}</td>
+                    <td>{{ visitante.telefono|default:"N/A" }}</td>
+                    <td>{{ visitante.motivo_visita|truncatewords:3 }}</td>
+                    <td>{{ visitante.persona_a_visitar|default:"N/A" }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'editar_visitante' visitante.id %}" class="btn-sm btn-edit">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-data">
+            <i class="fas fa-inbox"></i>
+            <p>No hay visitantes registrados aún</p>
+            <a href="{% url 'registrar_visitante' %}" class="btn-crear" style="margin-top: 15px;">
+                <i class="fas fa-user-plus"></i> Registrar Primer Visitante
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

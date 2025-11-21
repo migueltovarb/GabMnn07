@@ -1,0 +1,277 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Gestión de Ingreso a Edificios{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        .navbar {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .navbar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .navbar-brand i {
+            color: #0f3460;
+            font-size: 28px;
+        }
+        
+        .navbar-menu {
+            display: flex;
+            list-style: none;
+            gap: 0;
+            margin: 0;
+            padding: 0;
+            flex-wrap: wrap;
+        }
+        
+        .navbar-menu li {
+            position: relative;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .dropdown {
+            position: relative;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 0;
+            background: white;
+            list-style: none;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            min-width: 220px;
+            display: none;
+            margin: 0;
+            padding: 0;
+            z-index: 1001;
+        }
+        
+        .dropdown:hover .dropdown-menu {
+            display: block !important;
+        }
+        
+        .dropdown .dropdown-menu {
+            animation: slideDown 0.2s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .dropdown-menu li {
+            list-style: none;
+        }
+        
+        .dropdown-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            color: #2c3e50;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            white-space: nowrap;
+        }
+        
+        .dropdown-menu li a:hover {
+            background-color: #f0f0f0;
+            border-left-color: #0f3460;
+            padding-left: 25px;
+        }
+        
+        .dropdown-menu li:first-child a {
+            border-radius: 5px 5px 0 0;
+        }
+        
+        .dropdown-menu li:last-child a {
+            border-radius: 0 0 5px 5px;
+        }
+        
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+        }
+        
+        .logout-btn {
+            padding: 8px 16px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .logout-btn:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <i class="fas fa-building"></i>
+                <span>IngresoEdificio</span>
+            </div>
+            
+            <ul class="navbar-menu">
+                <li><a href="{% url 'dashboard' %}" class="nav-link"><i class="fas fa-home"></i> Inicio</a></li>
+                
+                {% if user.rol == 'administrador' %}
+                <li class="dropdown">
+                    <span class="nav-link"><i class="fas fa-users"></i> Usuarios ▼</span>
+                    <ul class="dropdown-menu">
+                        <li><a href="{% url 'crear_usuario' %}"><i class="fas fa-user-plus"></i> Nuevo Usuario</a></li>
+                        <li><a href="{% url 'listar_usuarios' %}"><i class="fas fa-list"></i> Listar Usuarios</a></li>
+                    </ul>
+                </li>
+                {% endif %}
+                
+                {% if user.rol == 'administrador' or user.rol == 'recepcionista' %}
+                <li class="dropdown">
+                    <span class="nav-link"><i class="fas fa-user-tie"></i> Visitantes ▼</span>
+                    <ul class="dropdown-menu">
+                        <li><a href="{% url 'registrar_visitante' %}"><i class="fas fa-user-check"></i> Registrar</a></li>
+                        <li><a href="{% url 'listar_visitantes' %}"><i class="fas fa-list"></i> Listar</a></li>
+                    </ul>
+                </li>
+                
+                <li class="dropdown">
+                    <span class="nav-link"><i class="fas fa-sign-in-alt"></i> Ingresos ▼</span>
+                    <ul class="dropdown-menu">
+                        <li><a href="{% url 'registrar_entrada' %}"><i class="fas fa-arrow-right"></i> Registrar Entrada</a></li>
+                        <li><a href="{% url 'registrar_salida' %}"><i class="fas fa-arrow-left"></i> Registrar Salida</a></li>
+                    </ul>
+                </li>
+                
+                <li class="dropdown">
+                    <span class="nav-link"><i class="fas fa-file-pdf"></i> Reportes ▼</span>
+                    <ul class="dropdown-menu">
+                        <li><a href="{% url 'generar_reporte' %}"><i class="fas fa-chart-bar"></i> Generar Reporte</a></li>
+                        <li><a href="{% url 'consultar_registros' %}"><i class="fas fa-search"></i> Consultar</a></li>
+                    </ul>
+                </li>
+                {% endif %}
+            </ul>
+            
+            <div class="navbar-right">
+                <span class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    {{ user.get_full_name|default:user.username }}
+                </span>
+                <a href="{% url 'logout' %}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Salir</a>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="container">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible">
+                {{ message }}
+                <button type="button" class="close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Sistema de Gestión de Ingreso a Edificios - Universidad Cooperativa de Colombia</p>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        // Mantener el dropdown abierto con delay para permitir hacer click
+        let closeTimeout;
+        document.querySelectorAll('.dropdown').forEach(dropdown => {
+            dropdown.addEventListener('mouseenter', function() {
+                clearTimeout(closeTimeout);
+                this.querySelector('.dropdown-menu').style.display = 'block';
+            });
+            dropdown.addEventListener('mouseleave', function() {
+                closeTimeout = setTimeout(() => {
+                    this.querySelector('.dropdown-menu').style.display = 'none';
+                }, 300); // 300ms de delay antes de cerrar
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
